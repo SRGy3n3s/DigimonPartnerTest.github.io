@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Which Rookie Digimon Are You?</title>
+<style>
+  body { font-family: Arial, sans-serif; max-width: 600px; margin: 20px auto; padding: 0 10px; }
+  h1 { text-align: center; }
+  .question { margin-bottom: 20px; }
+  label { display: block; margin: 6px 0; cursor: pointer; }
+  button { margin-top: 20px; padding: 10px 20px; font-size: 1em; }
+  .result { margin-top: 30px; white-space: pre-wrap; font-size: 1.1em; background: #f0f0f0; padding: 15px; border-radius: 8px; }
+  input[type="radio"] { margin-right: 8px; }
+</style>
+</head>
+<body>
+
+<h1>Which Rookie Digimon Are You Digidestined For?</h1>
+<div id="quiz"></div>
+<button id="nextBtn" onclick="nextQuestion()">Start Quiz</button>
+<div id="result" class="result" style="display:none; text-align:center;"></div>
+
+<script>
+// Full list of 75 Digimon: name, element, type, personality trait (single key trait)
+const digimonList = [
+  {name:"Agumon", element:"Fire", type:"Vaccine", trait:"Fearless", image:"https://wikimon.net/images/7/72/Agumon.jpg"},
+  {name:"Coronamon", element:"Fire", type:"Data", trait:"Innocent", image:"https://wikimon.net/images/b/bb/Coronamon_20th.jpg"},
+  {name:"Candmon", element:"Fire", type:"Virus", trait:"Gentle", image:"https://wikimon.net/images/5/59/Candmon.jpg"},
+  {name:"Guilmon", element:"Fire", type:"Free", trait:"Warm", image:"https://wikimon.net/images/c/c5/Guilmon.jpg"},
+  
+  {name:"Gomamon", element:"Water", type:"Vaccine", trait:"Fun", image:"https://wikimon.net/images/9/9b/Gomamon.jpg"},
+  {name:"Blucomon", element:"Water", type:"Data", trait:"Compassionate", image:"https://wikimon.net/images/c/c6/Bulucomon.jpg"},
+  {name:"Betamon", element:"Water", type:"Virus", trait:"Calm", image:"https://wikimon.net/images/7/77/Betamon.jpg"},
+  {name:"Otamamon", element:"Water", type:"Free", trait:"Jolly", image:"https://wikimon.net/images/7/7d/Otamamon2.jpg"},
+  {name:"Penmon", element:"Water", type:"Vaccine", trait:"Friendly", image:"https://wikimon.net/images/6/64/Penmon.jpg"},
+  {name:"Ganimon", element:"Water", type:"Data", trait:"Confident", image:"https://wikimon.net/images/7/78/Ganimon.jpg"},
+  {name:"Gizamon", element:"Water", type:"Virus", trait:"Fierce", image:"https://wikimon.net/images/d/d9/Gizamon.jpg"},
+  {name:"Jellymon", element:"Water", type:"Free", trait:"Teasing", image:"https://wikimon.net/images/9/9c/Jellymon.jpg"},
+
+  {name:"Tentomon", element:"Nature", type:"Vaccine", trait:"Carefree", image:"https://wikimon.net/images/a/ac/Tentomon.jpg"},
+  {name:"Floramon", element:"Nature", type:"Data", trait:"Prideful", image:"https://wikimon.net/images/2/24/Floramon.jpg"},
+  {name:"Kunemon", element:"Nature", type:"Virus", trait:"Malicious", image:"https://wikimon.net/images/1/11/Kunemon.jpg"},
+  {name:"Wormmon", element:"Nature", type:"Free", trait:"Loyal", image:"https://wikimon.net/images/0/02/Wormmon2.jpg"},
+  {name:"Morphomon", element:"Nature", type:"Vaccine", trait:"Dreamy", image:"https://wikimon.net/images/2/2f/Morphomon3.jpg"},
+  {name:"Palmon", element:"Nature", type:"Data", trait:"Cheerful", image:"https://wikimon.net/images/6/61/Palmon.jpg"},
+  {name:"Koemon", element:"Nature", type:"Virus", trait:"Reckless", image:"https://wikimon.net/images/b/b8/Koemon.jpg"},
+  {name:"Renamon", element:"Nature", type:"Free", trait:"Mysterious", image:"https://wikimon.net/images/4/46/Renamon.jpg"},
+
+  {name:"Falcomon", element:"Wind", type:"Vaccine", trait:"Level-headed", image:"https://wikimon.net/Falcomon"},
+  {name:"Muchomon", element:"Wind", type:"Data", trait:"Energetic", image:"https://wikimon.net/images/f/f0/Muchomon.jpg"},
+  {name:"Piyomon", element:"Wind", type:"Virus", trait:"Dreamy", image:"https://wikimon.net/images/d/d8/Piyomon.jpg"},
+  {name:"Hawkmon", element:"Wind", type:"Free", trait:"Clever", image:"https://wikimon.net/images/7/7f/Hawkmon.jpg"},
+  {name:"Angoramon", element:"Wind", type:"Vaccine", trait:"Calm", image:"https://wikimon.net/images/9/94/Angoramon.jpg"},
+  {name:"Patamon", element:"Wind", type:"Data", trait:"Cheerful", image:"https://wikimon.net/images/7/7d/Patamon.jpg"},
+  {name:"Pteromon", element:"Wind", type:"Virus", trait:"Bold", image:"https://wikimon.net/images/4/44/Pteromon.jpg"},
+
+  {name:"Pulsemon", element:"Electric", type:"Vaccine", trait:"Energetic", image:"https://wikimon.net/images/2/23/Pulsemon.jpg"},
+  {name:"Elecmon", element:"Electric", type:"Data", trait:"Excited", image:"https://wikimon.net/images/d/dc/Elecmon.jpg"},
+  {name:"Espimon", element:"Electric", type:"Virus", trait:"Daring", image:"https://wikimon.net/images/0/00/Espimon.jpg"},
+  {name:"Herissmon", element:"Electric", type:"Free", trait:"Spiky", image:"https://wikimon.net/images/e/e6/Herissmon.jpg"},
+
+  {name:"Gottsumon", element:"Ground", type:"Data", trait:"Tough", image:"https://wikimon.net/images/f/f4/Gottsumon.jpg"},
+  {name:"Lopmon", element:"Ground", type:"Virus", trait:"Tender", image:"https://wikimon.net/images/a/af/Lopmon.jpg"},
+  {name:"Goburimon", element:"Ground", type:"Virus", trait:"Mischievous", image:"https://wikimon.net/images/e/e7/Goburimon.jpg"},
+  {name:"Sunarizamon", element:"Ground", type:"Vaccine", trait:"Hardheaded", image:"https://wikimon.net/images/8/8b/Sunalizamon.jpg"},
+  {name:"Tyumon", element:"Ground", type:"Virus", trait:"Sneaky", image:"https://wikimon.net/images/e/ec/Tyumon.jpg"},
+  {name:"Armadimon", element:"Ground", type:"Free", trait:"Charming", image:"https://wikimon.net/images/a/a6/Armadimon2.jpg"},
+
+  {name:"Labramon", element:"Neutral", type:"Vaccine", trait:"Loyal", image:"https://wikimon.net/images/8/87/Labramon.jpg"},
+  {name:"DORUmon", element:"Neutral", type:"Data", trait:"Stoic", image:"https://wikimon.net/images/1/17/Dorumon.jpg"},
+  {name:"Gammamon", element:"Neutral", type:"Virus", trait:"Curious", image:"https://wikimon.net/images/7/7e/Gammamon.jpg"},
+  {name:"Spadamon", element:"Neutral", type:"Free", trait:"Chivalrous", image:"https://wikimon.net/images/9/9d/Spadamon.jpg"},
+  {name:"Gaomon", element:"Neutral", type:"Data", trait:"Disciplined", image:"https://wikimon.net/images/7/7f/Gaomon.jpg"},
+  {name:"Kotemon", element:"Neutral", type:"Data", trait:"Thoughtful", image:"https://wikimon.net/images/f/f8/Kotemon.jpg"},
+  {name:"Ryudamon", element:"Neutral", type:"Vaccine", trait:"Honorable", image:"https://wikimon.net/images/a/a4/Ryudamon.jpg"},
+  {name:"Bearmon", element:"Neutral", type:"Vaccine", trait:"Tough", image:"https://wikimon.net/images/8/8f/Bearmon2.jpg"},
+  {name:"V-mon", element:"Neutral", type:"Free", trait:"Brave", image:"https://wikimon.net/images/2/23/Vmon.jpg"},
+
+  {name:"Bacomon", element:"Weapon", type:"Data", trait:"Helpful", image:"https://wikimon.net/images/d/d5/Bacomon.jpg"},
+  {name:"Jazamon", element:"Weapon", type:"Data", trait:"Precise", image:"https://wikimon.net/images/c/c0/Jazamon.jpg"},
+  {name:"Ludomon", element:"Weapon", type:"Data", trait:"Armored", image:"https://wikimon.net/images/0/03/Ludomon.jpg"},
+  {name:"Commandramon", element:"Weapon", type:"Virus", trait:"Tactical", image:"https://wikimon.net/images/a/a0/Commandramon.jpg"},
+  {name:"Ekakimon", element:"Weapon", type:"Virus", trait:"Quirky", image:"https://wikimon.net/images/c/c8/Ekakimon.jpg"},
+  {name:"Iguneetmon", element:"Weapon", type:"Virus", trait:"Rebellious", image:"https://wikimon.net/images/a/a5/Iguneetmon.jpg"},
+  {name:"Junkmon", element:"Weapon", type:"Virus", trait:"Prideful", image:"https://wikimon.net/images/8/80/Junkmon.jpg"},
+  {name:"Shoemon", element:"Weapon", type:"Virus", trait:"Silent", image:"https://wikimon.net/images/b/b7/Shoemon.jpg"},
+  {name:"BEMmon", element:"Weapon", type:"Free", trait:"Calculating", image:"https://wikimon.net/images/e/e1/Bemmon.jpg"},
+
+  {name:"Ghostmon", element:"Dark", type:"Data", trait:"Kindhearted", image:"https://wikimon.net/images/0/0d/Ghostmon.jpg"},
+  {name:"Gazimon", element:"Dark", type:"Virus", trait:"Aggressive", image:"https://wikimon.net/images/a/ab/Gazimon.jpg"},
+  {name:"Impmon", element:"Dark", type:"Virus", trait:"Mischievous", image:"https://wikimon.net/images/0/0b/Impmon.jpg"},
+  {name:"Loogamon", element:"Dark", type:"Virus", trait:"Wild", image:"https://wikimon.net/images/6/6e/Loogamon.jpg"},
+  {name:"Phascomon", element:"Dark", type:"Virus", trait:"Lazy", image:"https://wikimon.net/images/0/03/Phascomon.jpg"},
+  {name:"PicoDevimon", element:"Dark", type:"Virus", trait:"Deceitful", image:"https://wikimon.net/images/d/d4/Picodevimon.jpg"},
+  {name:"Keramon", element:"Dark", type:"Free", trait:"Chaotic", image:"https://wikimon.net/images/1/12/Keramon.jpg"},
+
+  {name:"Bakumon", element:"Holy", type:"Vaccine", trait:"Protective", image:"https://wikimon.net/images/e/e4/Bakumon.jpg"},
+  {name:"Kudamon", element:"Holy", type:"Vaccine", trait:"Spiritual", image:"https://wikimon.net/images/8/80/Kudamon3.jpg"},
+  {name:"Liollmon", element:"Holy", type:"Vaccine", trait:"Righteous", image:"https://wikimon.net/images/7/7f/Liollmon.jpg"},
+  {name:"Luxmon", element:"Holy", type:"Vaccine", trait:"Innocent", image:"https://wikimon.net/images/8/83/Luxmon.jpg"},
+  {name:"Plotmon", element:"Holy", type:"Vaccine", trait:"Good-hearted", image:"https://wikimon.net/images/1/10/Plotmon.jpg"},
+  {name:"Solarmon", element:"Holy", type:"Vaccine", trait:"Serene", image:"https://wikimon.net/images/8/87/Solarmon.jpg"},
+
+  {name:"Hackmon", element:"Fire", type:"Free", trait:"Freedom-loving", image:"https://wikimon.net/images/b/b9/Huckmon.jpg"},
+  {name:"Dracomon", element:"Fire", type:"Data", trait:"Prideful", image:"https://wikimon.net/images/7/71/Dracomon.jpg"},
+  {name:"Vorvomon", element:"Fire", type:"Virus", trait:"Childish", image:"https://wikimon.net/images/6/6d/Vorvomon.jpg"},
+  {name:"Flamon", element:"Fire", type:"Free", trait:"Mischievous", image:"https://wikimon.net/images/0/0b/Flamon2.jpg"},
+  {name:"Gabumon", element:"Fire", type:"Data", trait:"Shy", image:"https://wikimon.net/images/7/71/Gabumon.jpg"}
+];
+
+// 31 creative, subtle questions with options mapping to a single key per personality, element, or type
+const questions = [
+  { text: "You’re exploring a forest when you see a glowing object half-buried under leaves. What do you do?",
+    keys: ["Fearless","Nature","Free"],
+    opts: ["Dig it up defiantly.","Mark its spot & return later.","Leave it—the forest knows best.","Take a distant photo.","Provoke it playfully."] },
+
+  { text: "Choose the sky that draws your eye:",
+    keys: ["Fire","Wind","Data","Dark","Electric"],
+    opts: ["Fiery sunset.","Clear, calm blue sky.","Flickering technical lights.","Eerie twilight.","Crackling storm clouds."] },
+
+  { text: "How do you help friends most?",
+    keys: ["Kind","Water","Vaccine"],
+    opts: ["Stand up for them.","Bring snacks and support.","Offer practical help.","Give space when needed.","Crack jokes to cheer them up."] },
+
+  { text: "You’re drawn to what energy?",
+    keys: ["Curious","Wind","Data"],
+    opts: ["A drifting wind chime.","A curious bird’s song.","A pattern in the clouds.","A gust that lifts you up.","A whisper of a breeze."] },
+
+  { text: "At a crossroads, you choose to:",
+    keys: ["Independent","Fire","Free"],
+    opts: ["Charge forward boldly.","Consider options quietly.","Stay put and reflect.","Choose the less-traveled path.","Distract everyone with a prank."] },
+
+  { text: "Pick your ideal workspace:",
+    keys: ["Peaceful","Water","Data"],
+    opts: ["A calm lake dock.","A desk with lots of notebooks.","A forest hideaway.","A bright open loft.","A quirky basement studio."] },
+
+  { text: "Your dream pet would be:",
+    keys: ["Playful","Water","Free"],
+    opts: ["A joyful otter.","A prankster cat.","A gentle deer.","A hawk companion.","A mischievous imp."] },
+
+  { text: "You face a challenge—your instinct is to:",
+    keys: ["Strategic","Neutral","Virus"],
+    opts: ["Plan every step.","Rely on instinct.","Admit you need help.","Charge without caution.","Distract before acting."] },
+
+  { text: "Pick a place to unwind:",
+    keys: ["Calm","Water","Vaccine"],
+    opts: ["A quiet riverbank.","A meditation garden.","A cozy forest cabin.","A windy hilltop.","A dimly lit alley."] },
+
+  { text: "Under pressure, you are:",
+    keys: ["Stoic","Fire","Data"],
+    opts: ["Silent and strong.","Rising in intensity.","Measuring every risk.","Fighting with flair.","Sly and unphased."] },
+
+  { text: "What motivates you?",
+    keys: ["Freedom","Wind","Free"],
+    opts: ["Self-expression and adventure.","Strong supportive bonds.","Inner peace.","New experiences.","Breaking the mold."] },
+
+  { text: "Which best fits your personality?",
+    keys: ["Mysterious","Dark","Virus"],
+    opts: ["Quiet and deep.","Hidden but present.","Fearless at night.","Playful boundary pusher.","Emotionally distant."] },
+
+  { text: "Your favorite terrain:",
+    keys: ["Ground","Ground","Free"],
+    opts: ["Rocky plateau.","Cavern floor.","Wooded trail.","Open grasslands.","Industrial ruins."] },
+
+  { text: "Pick a symbol of strength:",
+    keys: ["Tough","Weapon","Data"],
+    opts: ["A sturdy shield.","A precise blade.","A complex lock.","A flexible tool.","A smart gadget."] },
+
+  { text: "In a team, you:",
+    keys: ["Loyal","Neutral","Vaccine"],
+    opts: ["Stand by your team always.","Raise questions critically.","Support quietly.","Lead freely.","Challenge the norms."] },
+
+  { text: "Choose a color vibe:",
+    keys: ["Fearless","Fire","Free"],
+    opts: ["Crimson red.","Soft flame orange.","Steel gray.","Bright garnet.","Electric red-yellow."] },
+
+  { text: "Your perfect weekend is:",
+    keys: ["Energetic","Electric","Free"],
+    opts: ["Dancing at a rave.","Attending a coding hackathon.","Chilling by a waterfall.","Sky diving.","Rooftop party."] },
+
+  { text: "What’s your communication style?",
+    keys: ["Clever","Wind","Data"],
+    opts: ["Quick and witty.","Light and breezy.","Structured logic.","Direct authority.","Playful confusion."] },
+
+  { text: "Pick a moonlit scene:",
+    keys: ["Dreamy","Dark","Virus"],
+    opts: ["Glow over misty lake.","Crickets in deep woods.","Fog across quiet hills.","Moon climbing over skyscrapers.","Shadows that shift and smile."] },
+
+  { text: "What’s your relationship with rules?",
+    keys: ["Rebellious","Weapon","Virus"],
+    opts: ["Boldly break them.","Find loopholes.","Respect them cautiously.","Ignore them proudly.","Flip them humorously."] },
+
+  { text: "Your emotional core:",
+    keys: ["Honorable","Neutral","Vaccine"],
+    opts: ["Doing the right thing.","Balancing mind and heart.","Exploring endlessly.","Valuing independence.","Settling conflicts peacefully."] },
+
+  { text: "Pick an artifact:",
+    keys: ["Protective","Holy","Vaccine"],
+    opts: ["Angel’s blade.","Sacred scroll.","Blessed gemstone.","Ritual staff.","Quiet prayer stone."] },
+
+  { text: "At night, you dream of:",
+    keys: ["Innocent","Water","Vaccine"],
+    opts: ["Childlike wonder.","Floating on water.","Peaceful temple.","Mountain heights.","Laughing with friends."] },
+
+  { text: "You solve problems by:",
+    keys: ["Curious","Neutral","Data"],
+    opts: ["Asking a hundred questions.","Seeking balance.","Testing different paths.","Charging forward.","Joking your way through."] },
+
+  { text: "What’s your deepest value?",
+    keys: ["Compassionate","Water","Free"],
+    opts: ["Comfort for others.","Flow and acceptance.","Nature’s cycles.","Flying horses.","Impossible jokes."] },
+
+  { text: "Choose a piece of clothing:",
+    keys: ["Spiky","Electric","Free"],
+    opts: ["Leather jacket with studs.","Glow-in-the-dark hoodie.","Windbreaker.","Flowing scarf.","Stealth cloak."] },
+
+  { text: "Your spirit companion might be:",
+    keys: ["Shy","Weapon","Virus"],
+    opts: ["Soft-eyed fox.","Quiet blade.","Hidden dagger.","Witty automaton.","Ethereal mist."] },
+
+  { text: "Pick a guiding phrase:",
+    keys: ["Serene","Holy","Vaccine"],
+    opts: ["“Calm minds see clearly.”","“Duty binds me.”","“Mercy is strength.”","“Paths open to brave.”","“Balance all things.”"] },
+
+  { text: "You prefer puzzles that are:",
+    keys: ["Precise","Weapon","Data"],
+    opts: ["Exact and technical.","Wily and strategic.","Fluid and adaptable.","Simple and direct.","Chaotic and fun."] },
+
+  { text: "What legacy do you want to leave?",
+    keys: ["Good-hearted","Holy","Vaccine"],
+    opts: ["Kind acts remembered.","Hands that healed.","Creations that last.","Stories that inspire.","Songs that comfort."] }
+];
+
+// To keep track of scores
+let pos = 0;
+const elementCounts = {};
+const typeCounts = {};
+const traitCounts = {};
+
+// Current question and answer state
+const quizDiv = document.getElementById("quiz");
+const nextBtn = document.getElementById("nextBtn");
+const resultDiv = document.getElementById("result");
+
+function nextQuestion(){
+  // If this is the first click to start
+  if(pos === 0){
+    nextBtn.textContent = "Next";
+  }
+
+  // Save selected answer
+  const selected = document.querySelector('input[name="opt"]:checked');
+  if(selected){
+    const q = questions[pos-1];
+    const key = q.keys[selected.value];
+
+    // Assign counts based on category
+    const elements = ["Fire","Water","Nature","Wind","Electric","Ground","Neutral","Weapon","Dark","Holy"];
+    const types = ["Vaccine","Data","Virus","Free"];
+    const traits = ["Fearless","Innocent","Gentle","Warm","Fun","Compassionate","Calm","Jolly","Friendly","Confident","Fierce","Teasing",
+      "Carefree","Prideful","Malicious","Loyal","Dreamy","Cheerful","Reckless","Mysterious","Level-headed","Energetic","Bold",
+      "Excited","Daring","Spiky","Tough","Tender","Mischievous","Hardheaded","Sneaky","Charming","Stoic","Curious","Chivalrous",
+      "Disciplined","Thoughtful","Honorable","Tough","Brave","Helpful","Precise","Armored","Tactical","Quirky","Rebellious","Prideful",
+      "Silent","Calculating","Kindhearted","Aggressive","Mischievous","Wild","Lazy","Deceitful","Chaotic","Protective","Spiritual",
+      "Righteous","Innocent","Good-hearted","Serene","Freedom-loving","Prideful","Childish","Mischievous","Strange","Efficient","Shy",
+      "Clever","Independent","Strategic","Peaceful","Stoic","Dreamy","Playful","Rebellious","Honorable","Protective","Innocent",
+      "Good-hearted","Precise","Good-hearted","Serene","Calm","Silent","Fearless","Energetic","Curious","Loyal","Friendly","Clever",
+      "Kind","Brave","Fearless"];
+
+    if(elements.includes(key)){
+      elementCounts[key] = (elementCounts[key] || 0) + 1;
+    } else if(types.includes(key)){
+      typeCounts[key] = (typeCounts[key] || 0) + 1;
+    } else {
+      traitCounts[key] = (traitCounts[key] || 0) + 1;
+    }
+  } else if(pos > 0){
+    alert("Please select an option before continuing.");
+    return;
+  }
+
+  if(pos >= questions.length){
+    // End of quiz
+    quizDiv.innerHTML = "";
+    nextBtn.style.display = "none";
+    showResult();
+    return;
+  }
+
+  // Show next question
+  const q = questions[pos];
+  let html = `<div class="question"><p><b>Question ${pos + 1} of ${questions.length}:</b><br>${q.text}</p>`;
+  q.opts.forEach((opt,i) => {
+    html += `<label><input type="radio" name="opt" value="${i}"> ${opt}</label>`;
+  });
+  html += "</div>";
+  quizDiv.innerHTML = html;
+  pos++;
+}
+
+function showResult(){
+    // Find highest counts
+  const bestElem = Object.entries(elementCounts).sort((a,b)=>b[1]-a[1])[0]?.[0];
+  const bestType = Object.entries(typeCounts).sort((a,b)=>b[1]-a[1])[0]?.[0];
+  const bestTrait = Object.entries(traitCounts).sort((a,b)=>b[1]-a[1])[0]?.[0];
+
+  // Try exact match
+  let found = digimonList.find(d => d.element === bestElem && d.type === bestType && d.trait === bestTrait);
+
+  if(!found){
+    // Find all digimon matching 2 out of 3 categories
+    const closeMatches = digimonList.filter(d => {
+      let matchCount = 0;
+      if(d.element === bestElem) matchCount++;
+      if(d.type === bestType) matchCount++;
+      if(d.trait === bestTrait) matchCount++;
+      return matchCount >= 2;
+    });
+
+    if(closeMatches.length > 0){
+      // Pick a random digimon from close matches
+      found = closeMatches[Math.floor(Math.random() * closeMatches.length)];
+    }
+  }
+
+  if(!found){
+    // Fallback: pick any digimon randomly
+    found = digimonList[Math.floor(Math.random() * digimonList.length)];
+  }
+
+  //  Use backticks for multiline string and HTML content
+  let res = `
+    <h2>Your Digimon match is <strong>${found.name}</strong>!</h2>
+    <p><strong>Element:</strong> ${found.element}<br>
+    <strong>Type:</strong> ${found.type}<br>
+    
+    <img src="${found.image}" alt="${found.name}" style="max-width: 200px; margin-top: 10px;">
+  `;
+
+  resultDiv.style.display = "block";
+  resultDiv.innerHTML = res; //  Use innerHTML to render the result
+}
+</script>
+
+</body>
+</html>
